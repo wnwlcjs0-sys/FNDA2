@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="100%" height="100%" role="img" aria-label="훈제오리 샐러드랩 일러스트">
+  <defs>
+    <radialGradient id="wrap-grad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#A2CE7E"/>
+      <stop offset="100%" stop-color="#7DAE5A"/>
+    </radialGradient>
+  </defs>
+  <!-- Base Shadow -->
+  <ellipse cx="120" cy="115" rx="85" ry="42" fill="#132B40" opacity="0.9"/>
+  <!-- Plate Rim -->
+  <ellipse cx="120" cy="90" rx="90" ry="48" fill="#FFFFFF"/>
+  <!-- Salad & Tortilla Surface -->
+  <ellipse cx="120" cy="90" rx="80" ry="40" fill="url(#wrap-grad)"/>
+  <!-- Smoked Duck Slices -->
+  <ellipse cx="85" cy="80" rx="18" ry="11" fill="#D48B68" transform="rotate(-15 85 80)"/>
+  <ellipse cx="120" cy="90" rx="19" ry="12" fill="#BA6C48" transform="rotate(10 120 90)"/>
+  <ellipse cx="155" cy="95" rx="18" ry="11" fill="#D48B68" transform="rotate(-10 155 95)"/>
+  <ellipse cx="110" cy="72" rx="17" ry="10" fill="#995030" transform="rotate(25 110 72)"/>
+  <ellipse cx="140" cy="76" rx="18" ry="11" fill="#BA6C48" transform="rotate(-20 140 76)"/>
+  <!-- Fresh Greens & Tomatoes -->
+  <ellipse cx="75" cy="95" rx="13" ry="7" fill="#3D7D31"/>
+  <ellipse cx="128" cy="108" rx="13" ry="7" fill="#4B8B3B"/>
+  <ellipse cx="165" cy="78" rx="13" ry="7" fill="#3D7D31"/>
+  <circle cx="102" cy="86" r="5" fill="#E74C3C"/>
+  <circle cx="142" cy="92" r="4.5" fill="#C0392B"/>
+</svg>

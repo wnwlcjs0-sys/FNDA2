@@ -1,768 +1,374 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>매출 분석 및 점포 관리 대시보드</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- PapaParse for CSV Upload -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            900: '#1e3a8a'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>골라 담는 한 끼, 2개 이상 20% 파격 할인 | 센트럴점 프로모션</title>
+  
+  <meta name="description" content="센트럴점 냉장 간편식 3종 골라 담는 한 끼! 2개 이상 선택 시 20% 즉시 할인 (매일 12:00 선착순 20세트 한정). 내 조합 예상 가격을 지금 계산해 보세요." />
+  <meta name="robots" content="noindex, nofollow" />
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="골라 담는 한 끼, 2개 이상 20% 파격 할인 | 센트럴점" />
+  <meta property="og:description" content="매일 12:00 선착순 20세트 한정! 원하는 메뉴 2개 이상 담으면 20% 즉시 할인 (전 조합 8~9천 원대)." />
+  <meta property="og:image" content="assets/product-beef.svg" />
+  
+  <!-- Favicon & Stylesheet -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍱</text></svg>" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body>
+  <!-- 웹 접근성: 본문 바로가기 건너뛰기 링크 -->
+  <a href="#main-content" class="sr-only">본문 바로가기</a>
 
-    <!-- Header Navigation -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-brand-600 text-white p-2.5 rounded-xl shadow-md shadow-blue-500/20">
-                    <i class="fa-solid fa-chart-line text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">유통 매장 매출 분석 대시보드</h1>
-                    <p class="text-xs text-slate-500">일자별/점포별/상품별 실적 및 행사 효과 모니터링</p>
-                </div>
-            </div>
+  <!-- ARIA 라이브 리전 (스크린리더용 동적 음성 피드백) -->
+  <div id="a11yLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
-            <div class="flex items-center space-x-2">
-                <!-- CSV Upload Button -->
-                <label class="cursor-pointer bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center space-x-2 shadow-sm">
-                    <i class="fa-solid fa-file-csv text-emerald-600 text-sm"></i>
-                    <span class="hidden sm:inline">CSV 업로드</span>
-                    <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
-                </label>
+  <!-- 1. 글로벌 헤더 -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="#" class="logo-wrap" aria-label="센트럴점 프로모션 홈으로 이동">
+        <span class="logo-tag">CENTRAL</span>
+        <span class="logo-text">센트럴점</span>
+      </a>
 
-                <!-- Load Sample Data Button -->
-                <button onclick="loadSampleData()" class="bg-brand-600 hover:bg-brand-700 active:scale-95 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-md shadow-blue-500/20">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>샘플 데이터 로딩</span>
-                </button>
-            </div>
-        </div>
-    </header>
+      <nav aria-label="메인 네비게이션">
+        <ul class="nav-links">
+          <li><a href="#products-section">메뉴 선택</a></li>
+          <li><a href="#calc-section">가격 계산기</a></li>
+          <li><a href="#combos-section">조합 가격표</a></li>
+          <li><a href="#howto-section">참여 방법</a></li>
+          <li><a href="#faq-section">자주 묻는 질문</a></li>
+        </ul>
+      </nav>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-        <!-- Global Filter Panel -->
-        <section class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-sm space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center space-x-2 text-slate-800 font-bold text-sm">
-                    <i class="fa-solid fa-filter text-brand-600"></i>
-                    <span>다차원 데이터 필터</span>
-                </div>
-                <button onclick="resetFilters()" class="text-xs text-slate-400 hover:text-slate-600 transition flex items-center space-x-1">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                    <span>필터 초기화</span>
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <!-- Date Range -->
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">시작일 ~ 종료일</label>
-                    <div class="flex items-center space-x-1">
-                        <input type="date" id="filterStartDate" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <span class="text-slate-400 text-xs">~</span>
-                        <input type="date" id="filterEndDate" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-                    </div>
-                </div>
-
-                <!-- Store Select -->
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">점포 선택</label>
-                    <select id="filterStore" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="ALL">전체 점포</option>
-                    </select>
-                </div>
-
-                <!-- Category Select -->
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">카테고리</label>
-                    <select id="filterCategory" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="ALL">전체 카테고리</option>
-                    </select>
-                </div>
-
-                <!-- Promotion Applied (Y/N) -->
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">행사 적용 여부</label>
-                    <select id="filterPromo" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="ALL">전체 (Y / N)</option>
-                        <option value="Y">행사 적용 (Y)</option>
-                        <option value="N">정상 판매 (N)</option>
-                    </select>
-                </div>
-
-                <!-- Keyword Search -->
-                <div class="space-y-1">
-                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">상품명 / 코드 검색</label>
-                    <div class="relative">
-                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="상품명 또는 코드..." class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-slate-400 text-xs"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- KPI Executive Summary Cards -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <!-- KPI 1: 총 매출액 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                    <i class="fa-solid fa-won-sign text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">총 매출액</p>
-                    <h3 id="kpiTotalSales" class="text-lg sm:text-xl font-bold text-slate-900">0 원</h3>
-                    <p class="text-[10px] text-slate-400 mt-0.5">할인 적용 후 실매출</p>
-                </div>
-            </div>
-
-            <!-- KPI 2: 총 판매수량 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                    <i class="fa-solid fa-boxes-packing text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">총 판매수량</p>
-                    <h3 id="kpiTotalQty" class="text-lg sm:text-xl font-bold text-slate-900">0 개</h3>
-                    <p class="text-[10px] text-slate-400 mt-0.5">누적 판매 개수</p>
-                </div>
-            </div>
-
-            <!-- KPI 3: 총 할인액 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-rose-50 text-rose-600 rounded-xl">
-                    <i class="fa-solid fa-tags text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">총 할인액</p>
-                    <h3 id="kpiTotalDiscount" class="text-lg sm:text-xl font-bold text-slate-900">0 원</h3>
-                    <p id="kpiDiscountRate" class="text-[10px] text-rose-500 font-semibold mt-0.5">할인율: 0%</p>
-                </div>
-            </div>
-
-            <!-- KPI 4: 평균 판매 단가 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                    <i class="fa-solid fa-calculator text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">평균 객단가/단가</p>
-                    <h3 id="kpiAvgUnitPrice" class="text-lg sm:text-xl font-bold text-slate-900">0 원</h3>
-                    <p class="text-[10px] text-slate-400 mt-0.5">개당 평균 판매가</p>
-                </div>
-            </div>
-
-            <!-- KPI 5: 행사 적용 비중 -->
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
-                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
-                    <i class="fa-solid fa-percent text-xl"></i>
-                </div>
-                <div>
-                    <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">행사 매출 비중</p>
-                    <h3 id="kpiPromoRatio" class="text-lg sm:text-xl font-bold text-slate-900">0 %</h3>
-                    <p class="text-[10px] text-amber-600 font-semibold mt-0.5">행사 적용건 매출 비중</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Visualization Charts Section -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Chart 1: Daily Trend (Line) -->
-            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-chart-line text-brand-600"></i>
-                        <h2 class="text-sm font-bold text-slate-800">일자별 매출 추이</h2>
-                    </div>
-                    <span class="text-[11px] text-slate-400">(매출액 기준)</span>
-                </div>
-                <div class="flex-1 min-h-[260px] relative">
-                    <canvas id="dailyTrendChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart 2: Category Share (Doughnut) -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-chart-pie text-brand-600"></i>
-                        <h2 class="text-sm font-bold text-slate-800">카테고리별 매출 점유율</h2>
-                    </div>
-                </div>
-                <div class="flex-1 min-h-[260px] relative flex items-center justify-center">
-                    <canvas id="categoryChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart 3: Store Performance (Bar) -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-store text-brand-600"></i>
-                        <h2 class="text-sm font-bold text-slate-800">점포별 실적 비교</h2>
-                    </div>
-                </div>
-                <div class="flex-1 min-h-[240px] relative">
-                    <canvas id="storeChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart 4: Top 5 Best Sellers (Horizontal Bar) -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-trophy text-amber-500"></i>
-                        <h2 class="text-sm font-bold text-slate-800">Top 5 베스트셀러 상품</h2>
-                    </div>
-                </div>
-                <div class="flex-1 min-h-[240px] relative">
-                    <canvas id="topProductsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart 5: Promotion Analysis (Grouped Bar) -->
-            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa-solid fa-bullhorn text-brand-600"></i>
-                        <h2 class="text-sm font-bold text-slate-800">행사 적용 여부별 매출/할인 효과</h2>
-                    </div>
-                </div>
-                <div class="flex-1 min-h-[240px] relative">
-                    <canvas id="promoChart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <!-- Detailed Data Table Section -->
-        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                        <i class="fa-solid fa-table text-brand-600"></i>
-                        <span>매출 상세 내역 데이터</span>
-                    </h2>
-                    <p id="tableSummaryText" class="text-xs text-slate-500 mt-0.5">총 0건의 데이터 조회됨</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="downloadFilteredCSV()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-sm">
-                        <i class="fa-solid fa-file-excel"></i>
-                        <span>CSV 다운로드</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('date')">일자 <i class="fa-solid fa-sort text-[10px] ml-1"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('store')">점포 <i class="fa-solid fa-sort text-[10px] ml-1"></i></th>
-                            <th class="py-3 px-4 cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('category')">카테고리 <i class="fa-solid fa-sort text-[10px] ml-1"></i></th>
-                            <th class="py-3 px-4">상품코드</th>
-                            <th class="py-3 px-4">상품명</th>
-                            <th class="py-3 px-4 text-right cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('qty')">판매수량 <i class="fa-solid fa-sort text-[10px] ml-1"></i></th>
-                            <th class="py-3 px-4 text-right">정상단가</th>
-                            <th class="py-3 px-4 text-right">할인액</th>
-                            <th class="py-3 px-4 text-right cursor-pointer hover:bg-slate-100 transition" onclick="sortTable('sales')">매출액 <i class="fa-solid fa-sort text-[10px] ml-1"></i></th>
-                            <th class="py-3 px-4 text-center">행사적용</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dataTableBody" class="divide-y divide-slate-100 text-slate-700">
-                        <!-- Populated dynamically -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                <span id="pageInfo">1 / 1 페이지</span>
-                <div class="flex items-center space-x-1">
-                    <button onclick="changePage(-1)" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition disabled:opacity-50" id="btnPrevPage">이전</button>
-                    <button onclick="changePage(1)" class="px-2.5 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition disabled:opacity-50" id="btnNextPage">다음</button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 mt-auto">
-        유통/매장 데이터 분석 인터랙티브 대시보드 시스템 &copy; 2026
-    </footer>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center space-x-2 text-xs">
-        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
-        <span id="toastMessage">알림 메시지</span>
+      <div class="header-actions">
+        <button type="button" class="btn-header-share" id="btnSharePage" aria-label="프로모션 링크 공유하기">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          공유하기
+        </button>
+      </div>
     </div>
+  </header>
 
-    <script>
-        // Default Sample Data (Matches uploaded image structure)
-        const sampleDataset = [
-            { date: '2026-10-01', store: '센트럴점', category: '냉장 간편식', code: 'RM-101', name: '한끼 소불고기', qty: 44, unitPrice: 5900, discount: 0, sales: 259600, promo: 'N' },
-            { date: '2026-10-01', store: '센트럴점', category: '냉장 간편식', code: 'RM-102', name: '매콤 닭갈비', qty: 49, unitPrice: 5500, discount: 0, sales: 269500, promo: 'N' },
-            { date: '2026-10-01', store: '광복점', category: '냉장 간편식', code: 'RM-101', name: '한끼 소불고기', qty: 62, unitPrice: 5900, discount: 36580, sales: 329220, promo: 'Y' },
-            { date: '2026-10-01', store: '해운대점', category: '신선식품', code: 'FR-201', name: '친환경 샤인머스캣', qty: 30, unitPrice: 12900, discount: 38700, sales: 348300, promo: 'Y' },
-            { date: '2026-10-02', store: '센트럴점', category: '음료/주류', code: 'DR-301', name: '유기농 제주녹차', qty: 85, unitPrice: 2500, discount: 0, sales: 212500, promo: 'N' },
-            { date: '2026-10-02', store: '광복점', category: '가공식품', code: 'PROC-401', name: '프리미엄 스팸선물세트', qty: 22, unitPrice: 28900, discount: 63580, sales: 572220, promo: 'Y' },
-            { date: '2026-10-02', store: '해운대점', category: '냉장 간편식', code: 'RM-103', name: '우삼겹 부대찌개', qty: 53, unitPrice: 7900, discount: 0, sales: 418700, promo: 'N' },
-            { date: '2026-10-03', store: '센트럴점', category: '신선식품', code: 'FR-202', name: '한우 1등급 등심', qty: 18, unitPrice: 35000, discount: 63000, sales: 567000, promo: 'Y' },
-            { date: '2026-10-03', store: '광복점', category: '음료/주류', code: 'DR-302', name: '수제 크래프트 맥주', qty: 110, unitPrice: 3800, discount: 41800, sales: 376200, promo: 'Y' },
-            { date: '2026-10-03', store: '해운대점', category: '가공식품', code: 'PROC-402', name: '올리브유 선물세트', qty: 15, unitPrice: 42000, discount: 0, sales: 630000, promo: 'N' },
-            { date: '2026-10-04', store: '센트럴점', category: '냉장 간편식', code: 'RM-102', name: '매콤 닭갈비', qty: 70, unitPrice: 5500, discount: 38500, sales: 346500, promo: 'Y' },
-            { date: '2026-10-04', store: '광복점', category: '신선식품', code: 'FR-201', name: '친환경 샤인머스캣', qty: 45, unitPrice: 12900, discount: 0, sales: 580500, promo: 'N' },
-            { date: '2026-10-04', store: '해운대점', category: '음료/주류', code: 'DR-301', name: '유기농 제주녹차', qty: 95, unitPrice: 2500, discount: 23750, sales: 213750, promo: 'Y' },
-            { date: '2026-10-05', store: '센트럴점', category: '가공식품', code: 'PROC-401', name: '프리미엄 스팸선물세트', qty: 30, unitPrice: 28900, discount: 0, sales: 867000, promo: 'N' },
-            { date: '2026-10-05', store: '광복점', category: '냉장 간편식', code: 'RM-103', name: '우삼겹 부대찌개', qty: 60, unitPrice: 7900, discount: 47400, sales: 426600, promo: 'Y' },
-            { date: '2026-10-05', store: '해운대점', category: '신선식품', code: 'FR-202', name: '한우 1등급 등심', qty: 25, unitPrice: 35000, discount: 87500, sales: 787500, promo: 'Y' }
-        ];
+  <!-- 2. 히어로 배너 섹션 -->
+  <section class="hero-section" aria-labelledby="hero-main-title">
+    <div class="container">
+      <div class="hero-banner">
+        <div class="hero-content">
+          <span class="hero-subtitle-tag">CENTRAL STORE · 2026 AUTUMN PROMOTION</span>
+          <h1 class="hero-title" id="hero-main-title">골라 담는 한 끼</h1>
+          <p class="hero-copy">오늘은 내 취향대로! 대상 3종 중 2개 이상 담으면</p>
 
-        let rawData = [];
-        let filteredData = [];
-        let currentPage = 1;
-        const itemsPerPage = 7;
-        let sortColumn = 'date';
-        let sortAsc = false;
+          <div class="hero-discount-lockup">
+            <span class="hero-rate">20%</span>
+            <span class="hero-rate-label">즉시 할인</span>
+          </div>
 
-        // Chart instances
-        let dailyTrendChartInstance = null;
-        let categoryChartInstance = null;
-        let storeChartInstance = null;
-        let topProductsChartInstance = null;
-        let promoChartInstance = null;
+          <ul class="hero-meta-list">
+            <li class="hero-meta-item">
+              <span class="badge-dot" aria-hidden="true"></span>
+              <strong>행사 기간:</strong> 2026.10.21(수) ~ 11.03(화) (14일간)
+            </li>
+            <li class="hero-meta-item">
+              <span class="badge-dot" aria-hidden="true"></span>
+              <strong>행사 시간:</strong> 매일 12:00 정오 시작 (선착순)
+            </li>
+            <li class="hero-meta-item">
+              <span class="badge-dot" aria-hidden="true"></span>
+              <strong>행사 한도:</strong> 하루 선착순 20세트 한정 (2개 기준 총 40개)
+            </li>
+          </ul>
 
-        window.onload = function() {
-            loadSampleData();
-        };
+          <div class="hero-cta-group">
+            <a href="#calc-section" class="btn-primary-cta">
+              내 조합 가격 보기
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          </div>
 
-        function loadSampleData() {
-            rawData = JSON.parse(JSON.stringify(sampleDataset));
-            initFilters();
-            applyFilters();
-            showToast("샘플 데이터가 성공적으로 로딩되었습니다.");
-        }
+          <div class="hero-schedule-box">
+            <span class="schedule-badge badge-waiting" id="heroScheduleBadge">상태 확인 중...</span>
+            <p class="schedule-desc" id="heroScheduleDesc"></p>
+          </div>
+        </div>
 
-        function handleFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        <!-- 히어로 우측 비주얼 프리뷰 -->
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-combo-preview">
+            <div class="hero-preview-item">
+              <img src="assets/product-beef.svg" alt="" width="110" height="80" />
+            </div>
+            <div class="hero-preview-item">
+              <img src="assets/product-chicken.svg" alt="" width="110" height="80" />
+            </div>
+            <div class="hero-preview-item">
+              <img src="assets/product-wrap.svg" alt="" width="110" height="80" />
+            </div>
+          </div>
+          <p class="hero-visual-caption">전 조합 8,800원 ~ 9,920원</p>
+          <p class="hero-visual-sub">2개 선택 시 1끼당 4,000원대 실속 실현</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    try {
-                        const parsed = results.data.map((row, idx) => {
-                            const qty = parseInt(row['판매수량'] || row['qty'] || 0);
-                            const unitPrice = parseInt(row['정상단가'] || row['unitPrice'] || 0);
-                            const discount = parseInt(row['할인액'] || row['discount'] || 0);
-                            let sales = parseInt(row['매출액'] || row['sales'] || 0);
-                            
-                            if (!sales) sales = (qty * unitPrice) - discount;
+  <!-- 3. 메인 콘텐츠 영역 (상품 목록 & 가격 계산기) -->
+  <main id="main-content" class="main-app-section" role="main">
+    <div class="container">
+      <div class="section-header" id="products-section">
+        <p class="section-tag">STEP 1 &amp; 2</p>
+        <h2 class="section-title">취향대로 담고, 가격을 확인하세요</h2>
+        <p class="section-desc">동일 상품 중복 선택 가능! 2개 이상 담으시면 대상 상품 전체 합계에 20% 즉시 할인이 적용됩니다.</p>
+      </div>
 
-                            return {
-                                date: row['일자'] || row['date'] || '2026-10-01',
-                                store: row['점포'] || row['store'] || '미지정',
-                                category: row['카테고리'] || row['category'] || '기타',
-                                code: row['상품코드'] || row['code'] || `P-${idx+1}`,
-                                name: row['상품명'] || row['name'] || '상품명 미상',
-                                qty: qty,
-                                unitPrice: unitPrice,
-                                discount: discount,
-                                sales: sales,
-                                promo: (row['행사적용'] || row['promo'] || 'N').toUpperCase().trim()
-                            };
-                        });
+      <div class="app-grid-layout">
+        <!-- 좌측 열: 상품 카드 목록 및 추천 세트 -->
+        <div class="product-column">
+          <div class="product-cards-container" id="productList">
+            <!-- JavaScript 렌더링 영역 (ui.js) -->
+            <noscript>
+              <div class="status-msg warning">
+                자바스크립트가 비활성화되어 있습니다. 가격 계산기를 이용하시려면 자바스크립트를 활성화해 주세요.
+              </div>
+            </noscript>
+          </div>
 
-                        if (parsed.length === 0) {
-                            showToast("유효한 데이터가 없습니다.");
-                            return;
-                        }
+          <!-- 추천 세트 프리셋 섹션 -->
+          <section class="preset-section" aria-labelledby="preset-heading">
+            <div class="preset-header">
+              <h3 class="preset-title" id="preset-heading">💡 고민된다면? 원클릭 추천 조합</h3>
+              <span class="preset-sub">클릭 시 계산기에 즉시 반영됩니다</span>
+            </div>
+            <div class="preset-chips-wrap" id="presetList">
+              <!-- JavaScript 렌더링 영역 -->
+            </div>
+          </section>
+        </div>
 
-                        rawData = parsed;
-                        initFilters();
-                        applyFilters();
-                        showToast(`${parsed.length}건의 데이터를 성공적으로 업로드했습니다.`);
-                    } catch (e) {
-                        showToast("CSV 파일 형식 오류가 발생했습니다.");
-                    }
-                }
-            });
-        }
+        <!-- 우측 열: Sticky 가격 계산기 패널 -->
+        <aside class="calculator-column" id="calc-section" aria-label="예상 결제 금액 계산기">
+          <div class="calculator-sticky-panel">
+            <div class="calc-header">
+              <h3 class="calc-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                내가 고른 조합 계산기
+              </h3>
+              <button type="button" class="btn-reset" id="btnResetCalc" aria-label="선택 수량 전체 초기화">초기화</button>
+            </div>
 
-        function initFilters() {
-            // Stores Filter
-            const storesSet = [...new Set(rawData.map(d => d.store))].sort();
-            const storeSelect = document.getElementById('filterStore');
-            storeSelect.innerHTML = '<option value="ALL">전체 점포</option>' + 
-                storesSet.map(s => `<option value="${s}">${s}</option>`).join('');
+            <!-- 선택한 상품 목록 요약 -->
+            <div class="calc-selected-box">
+              <ul class="calc-selected-list" id="calcSelectedItems">
+                <!-- JavaScript 렌더링 영역 -->
+              </ul>
+            </div>
 
-            // Category Filter
-            const catSet = [...new Set(rawData.map(d => d.category))].sort();
-            const catSelect = document.getElementById('filterCategory');
-            catSelect.innerHTML = '<option value="ALL">전체 카테고리</option>' + 
-                catSet.map(c => `<option value="${c}">${c}</option>`).join('');
+            <!-- 금액 요약 -->
+            <div class="calc-summary-rows">
+              <div class="calc-row">
+                <span class="lbl">선택 수량 합계</span>
+                <span class="val" id="calcTotalCount">0개</span>
+              </div>
+              <div class="calc-row">
+                <span class="lbl">정상 합계 금액</span>
+                <span class="val" id="calcSubtotal">0원</span>
+              </div>
+              <div class="calc-row discount-row" id="calcDiscountRow" style="display: none;">
+                <span class="lbl">20% 프로모션 즉시 할인</span>
+                <span class="val" id="calcDiscountAmount">−0원</span>
+              </div>
+              <div class="calc-row payable-row">
+                <span class="lbl">예상 결제 금액</span>
+                <span class="val" id="calcPayableAmount">0원</span>
+              </div>
+              <div class="calc-row per-meal-row" id="calcPerMealRow" style="display: none;">
+                <span class="lbl">1끼 환산가 (2끼 기준)</span>
+                <span class="val" id="calcPerMealPrice">0원</span>
+              </div>
+            </div>
 
-            // Date Range
-            const dates = rawData.map(d => d.date).sort();
-            if (dates.length > 0) {
-                document.getElementById('filterStartDate').value = dates[0];
-                document.getElementById('filterEndDate').value = dates[dates.length - 1];
-            }
-        }
+            <!-- 상태 안내 메시지 -->
+            <div class="status-msg info" id="calcStatusMessage">
+              상품을 2개 이상 담아 20% 할인 가격을 확인해보세요.
+            </div>
 
-        function resetFilters() {
-            document.getElementById('filterStore').value = 'ALL';
-            document.getElementById('filterCategory').value = 'ALL';
-            document.getElementById('filterPromo').value = 'ALL';
-            document.getElementById('filterSearch').value = '';
-            
-            const dates = rawData.map(d => d.date).sort();
-            if (dates.length > 0) {
-                document.getElementById('filterStartDate').value = dates[0];
-                document.getElementById('filterEndDate').value = dates[dates.length - 1];
-            }
-            applyFilters();
-        }
+            <p class="calc-notice">
+              ※ 본 계산기는 고객님의 이해를 돕기 위한 사전 시뮬레이션입니다.<br />
+              ※ 실제 선착순 한도 적용(일 20세트/40개) 및 할인은 <strong>센트럴점 매장 POS 결제 시점</strong>에 결정됩니다.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
 
-        function applyFilters() {
-            const startDate = document.getElementById('filterStartDate').value;
-            const endDate = document.getElementById('filterEndDate').value;
-            const store = document.getElementById('filterStore').value;
-            const category = document.getElementById('filterCategory').value;
-            const promo = document.getElementById('filterPromo').value;
-            const search = document.getElementById('filterSearch').value.toLowerCase().trim();
+  <!-- 4. 6개 조합 전체 가격표 섹션 -->
+  <section class="combos-table-section" id="combos-section" aria-labelledby="combos-title">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">PRICING MATRIX</p>
+        <h2 class="section-title" id="combos-title">2개 선택 시 모든 조합 가격표</h2>
+        <p class="section-desc">어떤 조합을 골라도 1만 원 미만(8,800원 ~ 9,920원)! 하루 두 끼 또는 동료와 나누어 즐기세요.</p>
+      </div>
 
-            filteredData = rawData.filter(item => {
-                if (startDate && item.date < startDate) return false;
-                if (endDate && item.date > endDate) return false;
-                if (store !== 'ALL' && item.store !== store) return false;
-                if (category !== 'ALL' && item.category !== category) return false;
-                if (promo !== 'ALL' && item.promo !== promo) return false;
-                if (search && !item.name.toLowerCase().includes(search) && !item.code.toLowerCase().includes(search)) return false;
-                return true;
-            });
+      <div class="table-responsive">
+        <table class="combo-table">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 60px;">순번</th>
+              <th scope="col">선택 조합 (2개)</th>
+              <th scope="col">정상가 합계</th>
+              <th scope="col">20% 할인 혜택</th>
+              <th scope="col">프로모션 결제가</th>
+              <th scope="col">1끼 환산가 (2끼 기준)</th>
+            </tr>
+          </thead>
+          <tbody id="comboTableBody">
+            <!-- JavaScript 렌더링 영역 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
 
-            currentPage = 1;
-            updateKPIs();
-            renderCharts();
-            renderTable();
-        }
+  <!-- 5. 참여 방법 3-Step 섹션 -->
+  <section class="howto-section" id="howto-section" aria-labelledby="howto-title">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">HOW TO PARTICIPATE</p>
+        <h2 class="section-title" id="howto-title">프로모션 참여 방법 3단계</h2>
+        <p class="section-desc">센트럴점 냉장 간편식 코너에서 누구나 쉽게 20% 할인을 받으실 수 있습니다.</p>
+      </div>
 
-        function updateKPIs() {
-            const totalSales = filteredData.reduce((sum, d) => sum + d.sales, 0);
-            const totalQty = filteredData.reduce((sum, d) => sum + d.qty, 0);
-            const totalDiscount = filteredData.reduce((sum, d) => sum + d.discount, 0);
-            const totalRegularSales = totalSales + totalDiscount;
-            const avgUnitPrice = totalQty > 0 ? Math.round(totalSales / totalQty) : 0;
-            
-            const promoSales = filteredData.filter(d => d.promo === 'Y').reduce((sum, d) => sum + d.sales, 0);
-            const promoRatio = totalSales > 0 ? ((promoSales / totalSales) * 100).toFixed(1) : 0;
-            const discountRate = totalRegularSales > 0 ? ((totalDiscount / totalRegularSales) * 100).toFixed(1) : 0;
+      <div class="steps-grid">
+        <article class="step-card">
+          <div class="step-num" aria-hidden="true">01</div>
+          <h3 class="step-title">센트럴점 매대 방문</h3>
+          <p class="step-desc">
+            행사 기간(10.21~11.03) 중 센트럴점 냉장 간편식 코너에 방문합니다. 골든존에 나란히 진열된 행사 상품을 확인하세요.
+          </p>
+        </article>
 
-            document.getElementById('kpiTotalSales').innerText = totalSales.toLocaleString() + ' 원';
-            document.getElementById('kpiTotalQty').innerText = totalQty.toLocaleString() + ' 개';
-            document.getElementById('kpiTotalDiscount').innerText = totalDiscount.toLocaleString() + ' 원';
-            document.getElementById('kpiDiscountRate').innerText = `할인율: ${discountRate}%`;
-            document.getElementById('kpiAvgUnitPrice').innerText = avgUnitPrice.toLocaleString() + ' 원';
-            document.getElementById('kpiPromoRatio').innerText = promoRatio + ' %';
-        }
+        <article class="step-card">
+          <div class="step-num" aria-hidden="true">02</div>
+          <h3 class="step-title">대상 3종 중 2개 이상 선택</h3>
+          <p class="step-desc">
+            소불고기덮밥, 닭갈비볶음밥, 샐러드랩 중 좋아하는 메뉴를 자유롭게 2개 이상 장바구니에 담습니다. (동일 상품 중복 가능)
+          </p>
+        </article>
 
-        function renderCharts() {
-            // 1. Daily Trend Chart
-            const dailyMap = {};
-            filteredData.forEach(d => {
-                dailyMap[d.date] = (dailyMap[d.date] || 0) + d.sales;
-            });
-            const sortedDates = Object.keys(dailyMap).sort();
-            const dailySales = sortedDates.map(d => dailyMap[d]);
+        <article class="step-card">
+          <div class="step-num" aria-hidden="true">03</div>
+          <h3 class="step-title">12:00 선착순 POS 즉시 할인</h3>
+          <p class="step-desc">
+            매일 낮 12:00부터 선착순 20세트(총 40개)에 한해 계산대 POS에서 20% 금액이 자동으로 즉시 차감됩니다.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
 
-            if (dailyTrendChartInstance) dailyTrendChartInstance.destroy();
-            dailyTrendChartInstance = new Chart(document.getElementById('dailyTrendChart'), {
-                type: 'line',
-                data: {
-                    labels: sortedDates,
-                    datasets: [{
-                        label: '매출액 (원)',
-                        data: dailySales,
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#2563eb'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { ticks: { callback: v => (v/10000).toLocaleString() + '만' } }
-                    }
-                }
-            });
+  <!-- 6. 자주 묻는 질문 FAQ 섹션 -->
+  <section class="faq-section" id="faq-section" aria-labelledby="faq-title">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-tag">FAQ</p>
+        <h2 class="section-title" id="faq-title">자주 묻는 질문</h2>
+        <p class="section-desc">프로모션 이용과 관련해 고객님들이 가장 자주 문의하시는 내용입니다.</p>
+      </div>
 
-            // 2. Category Share Chart
-            const catMap = {};
-            filteredData.forEach(d => {
-                catMap[d.category] = (catMap[d.category] || 0) + d.sales;
-            });
+      <div class="faq-list">
+        <details class="faq-item" open>
+          <summary class="faq-question">같은 메뉴를 2개 골라도 20% 할인이 되나요?</summary>
+          <div class="faq-answer">
+            네, 가능합니다! 예를 들어 '훈제오리 샐러드랩 2개'를 선택하셔도 정상가 12,400원에서 20% 할인된 9,920원에 결제됩니다. 고객님의 취향에 따라 자유롭게 골라 담으실 수 있습니다.
+          </div>
+        </details>
 
-            if (categoryChartInstance) categoryChartInstance.destroy();
-            categoryChartInstance = new Chart(document.getElementById('categoryChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(catMap),
-                    datasets: [{
-                        data: Object.values(catMap),
-                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
-                }
-            });
+        <details class="faq-item">
+          <summary class="faq-question">3개 이상 구매해도 할인이 적용되나요?</summary>
+          <div class="faq-answer">
+            네! 대상 3종 상품을 3개 이상 구매하셔도 대상 상품 전체 금액에 대해 20% 할인이 적용됩니다. 단, 일일 선착순 잔여 수량(당일 총 40개 한도) 내에서 적용됩니다.
+          </div>
+        </details>
 
-            // 3. Store Performance Chart
-            const storeMap = {};
-            filteredData.forEach(d => {
-                storeMap[d.store] = (storeMap[d.store] || 0) + d.sales;
-            });
+        <details class="faq-item">
+          <summary class="faq-question">웹사이트에서 미리 주문하거나 예약할 수 있나요?</summary>
+          <div class="faq-answer">
+            아닙니다. 본 웹사이트는 고객님의 사전 메뉴 탐색과 예상 결제 금액 확인을 돕는 홍보 페이지입니다. 결제와 선착순 수량 확인은 센트럴점 매장 현장에서만 진행됩니다.
+          </div>
+        </details>
 
-            if (storeChartInstance) storeChartInstance.destroy();
-            storeChartInstance = new Chart(document.getElementById('storeChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(storeMap),
-                    datasets: [{
-                        label: '점포별 매출액',
-                        data: Object.values(storeMap),
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { ticks: { callback: v => (v/10000).toLocaleString() + '만' } } }
-                }
-            });
+        <details class="faq-item">
+          <summary class="faq-question">선착순 20세트(총 40개)는 언제 시작하고 마감되나요?</summary>
+          <div class="faq-answer">
+            행사 기간 동안 매일 정오(낮 12:00)부터 당일 행사 수량이 오픈됩니다. 일일 선착순 20세트(2개 기준 총 40개) 소진 시 당일 행사는 자동으로 조기 마감됩니다.
+          </div>
+        </details>
 
-            // 4. Top 5 Best Sellers Chart
-            const prodMap = {};
-            filteredData.forEach(d => {
-                prodMap[d.name] = (prodMap[d.name] || 0) + d.sales;
-            });
-            const sortedProds = Object.entries(prodMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        <details class="faq-item">
+          <summary class="faq-question">통신사 할인이나 기타 제휴 할인과 중복 적용이 되나요?</summary>
+          <div class="faq-answer">
+            본 프로모션은 20% 파격 특가 행사로 기타 쿠폰, 제휴 카드 및 통신사 할인과 중복 적용되지 않습니다.
+          </div>
+        </details>
 
-            if (topProductsChartInstance) topProductsChartInstance.destroy();
-            topProductsChartInstance = new Chart(document.getElementById('topProductsChart'), {
-                type: 'bar',
-                data: {
-                    labels: sortedProds.map(p => p[0]),
-                    datasets: [{
-                        label: '매출액',
-                        data: sortedProds.map(p => p[1]),
-                        backgroundColor: '#f59e0b',
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
+        <details class="faq-item">
+          <summary class="faq-question">1개만 구매해도 할인이 되나요?</summary>
+          <div class="faq-answer">
+            단품 1개 구매 시에는 정상 판매가가 적용됩니다. 본 행사는 1인 고객의 두 끼 식사 또는 동료와의 동시 구매를 지원하기 위한 묶음 할인 행사로 최소 2개 이상 구매 시에만 20% 할인이 적용됩니다.
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
 
-            // 5. Promotion Analysis Chart
-            const promoSalesY = filteredData.filter(d=>d.promo==='Y').reduce((s,d)=>s+d.sales, 0);
-            const promoSalesN = filteredData.filter(d=>d.promo==='N').reduce((s,d)=>s+d.sales, 0);
-            const promoDiscY = filteredData.filter(d=>d.promo==='Y').reduce((s,d)=>s+d.discount, 0);
+  <!-- 7. 푸터 및 법적 고지 -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <div class="footer-badges">
+        <span class="footer-tag">센트럴점 단독 행사</span>
+        <span class="footer-tag">교육용 시안 프로젝트</span>
+      </div>
 
-            if (promoChartInstance) promoChartInstance.destroy();
-            promoChartInstance = new Chart(document.getElementById('promoChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['행사 적용 (Y)', '정상 판매 (N)'],
-                    datasets: [
-                        { label: '매출액', data: [promoSalesY, promoSalesN], backgroundColor: '#10b981', borderRadius: 6 },
-                        { label: '할인액', data: [promoDiscY, 0], backgroundColor: '#f43f5e', borderRadius: 6 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { ticks: { callback: v => (v/10000).toLocaleString() + '만' } } }
-                }
-            });
-        }
+      <p class="footer-disclaimer">
+        ※ 본 프로모션 웹사이트는 데이터 리터러시 교육 및 기획 검증 목적으로 제작된 시안입니다.<br />
+        ※ 표시된 상품 이미지, 가격 및 할인 정책은 기획안 기준이며, 실제 점포 사정 및 재고 현황에 따라 현장과 차이가 있을 수 있습니다.<br />
+        ※ 대상 점포: 센트럴점 (리버점, 파크점 제외) · 행사 문의: 센트럴점 고객만족센터
+      </p>
 
-        function sortTable(col) {
-            if (sortColumn === col) {
-                sortAsc = !sortAsc;
-            } else {
-                sortColumn = col;
-                sortAsc = true;
-            }
-            renderTable();
-        }
+      <p class="footer-copy">
+        &copy; 2026 Central Store Promotion Project. All Rights Reserved. Built with Pure Vanilla JavaScript.
+      </p>
+    </div>
+  </footer>
 
-        function renderTable() {
-            let dataCopy = [...filteredData];
+  <!-- 8. 모바일 하단 플로팅 바 (반응형 Sticky) -->
+  <div class="mobile-floating-bar" id="mobileFloatingBar" aria-hidden="true">
+    <div class="float-info">
+      <span class="float-count" id="floatCount">총 0개 선택</span>
+      <span class="float-price" id="floatPrice">0원</span>
+    </div>
+    <a href="#calc-section" class="btn-float-action">가격 확인</a>
+  </div>
 
-            dataCopy.sort((a, b) => {
-                let valA = a[sortColumn];
-                let valB = b[sortColumn];
-
-                if (typeof valA === 'string') {
-                    return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                } else {
-                    return sortAsc ? valA - valB : valB - valA;
-                }
-            });
-
-            const totalPages = Math.ceil(dataCopy.length / itemsPerPage) || 1;
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const pageData = dataCopy.slice(startIndex, startIndex + itemsPerPage);
-
-            document.getElementById('tableSummaryText').innerText = `총 ${filteredData.length}건 중 (${startIndex + 1} ~ ${Math.min(startIndex + itemsPerPage, filteredData.length)}) 표시`;
-            document.getElementById('pageInfo').innerText = `${currentPage} / ${totalPages} 페이지`;
-            document.getElementById('btnPrevPage').disabled = (currentPage === 1);
-            document.getElementById('btnNextPage').disabled = (currentPage === totalPages);
-
-            const tbody = document.getElementById('dataTableBody');
-            if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-slate-400">조회된 매출 데이터가 없습니다.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = pageData.map(row => {
-                const isPromo = row.promo === 'Y';
-                return `
-                    <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3 px-4 font-mono text-slate-500">${row.date}</td>
-                        <td class="py-3 px-4 font-semibold text-slate-800">${row.store}</td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700">${row.category}</span>
-                        </td>
-                        <td class="py-3 px-4 font-mono text-slate-400">${row.code}</td>
-                        <td class="py-3 px-4 font-bold text-slate-900">${row.name}</td>
-                        <td class="py-3 px-4 text-right font-semibold">${row.qty.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-right text-slate-500">${row.unitPrice.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-right text-rose-500">${row.discount > 0 ? '-' + row.discount.toLocaleString() : '0'}</td>
-                        <td class="py-3 px-4 text-right font-bold text-blue-600">${row.sales.toLocaleString()} 원</td>
-                        <td class="py-3 px-4 text-center">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isPromo ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-500'}">
-                                ${row.promo}
-                            </span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function changePage(delta) {
-            currentPage += delta;
-            renderTable();
-        }
-
-        function downloadFilteredCSV() {
-            if (filteredData.length === 0) {
-                showToast("다운로드할 데이터가 없습니다.");
-                return;
-            }
-
-            const headers = ["일자", "점포", "카테고리", "상품코드", "상품명", "판매수량", "정상단가", "할인액", "매출액", "행사적용"];
-            const csvRows = [headers.join(",")];
-
-            filteredData.forEach(row => {
-                const values = [
-                    row.date,
-                    `"${row.store}"`,
-                    `"${row.category}"`,
-                    row.code,
-                    `"${row.name}"`,
-                    row.qty,
-                    row.unitPrice,
-                    row.discount,
-                    row.sales,
-                    row.promo
-                ];
-                csvRows.push(values.join(","));
-            });
-
-            const csvContent = "\uFEFF" + csvRows.join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `매출내역_리포트_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            showToast("CSV 파일 다운로드가 완료되었습니다.");
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMessage');
-            if (!toast || !toastMsg) return;
-
-            toastMsg.innerText = msg;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-    </script>
+  <!-- 메인 모듈 진입점 (ES Modules) -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
